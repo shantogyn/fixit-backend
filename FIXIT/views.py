@@ -4,3 +4,4 @@ from accounts.serializers import MyTokenObtainPairSerializer
 
 class MyTokenObtainPairView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer
+
