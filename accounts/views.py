@@ -72,72 +72,42 @@ class RegisterView(APIView):
 
 #login view with Serializer
 class LoginView(APIView):
+    permission_classes = [AllowAny]
 
-    permission_classes=[AllowAny]
+    def post(self, request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-
-    def post(self,request):
-
-        serializer = LoginSerializer(
-            data=request.data
-        )
-
-
-        serializer.is_valid(
-            raise_exception=True
-        )
-
-
-        email = serializer.validated_data["email"]
+        email = serializer.validated_data.get("email")
+        full_name = serializer.validated_data.get("full_name")
         password = serializer.validated_data["password"]
 
+        user = None
+        if email:
+            user = User.objects.filter(email=email).first()
+        elif full_name:
+            user = User.objects.filter(full_name=full_name).first()
 
-        try:
-            user = User.objects.get(
-                email=email
-            )
-
-        except User.DoesNotExist:
-
+        if user is None or not user.check_password(password):
             return Response(
-                {
-                    "message":
-                    "Invalid email or password"
-                },
-                status=401
+                {"message": "Invalid email/full name or password"},
+                status=status.HTTP_401_UNAUTHORIZED
             )
-
-
-        if not user.check_password(password):
-
-            return Response(
-                {
-                "message":
-                "Invalid email or password"
-                },
-                status=401
-            )
-
 
         refresh = RefreshToken.for_user(user)
 
-
         return Response(
             {
-            "access":
-            str(refresh.access_token),
-
-            "refresh":
-            str(refresh),
-
-            "user":
-                {
-                "id":user.id,
-                "username":user.username,
-                "email":user.email,
-                "role":user.role
-                }
-            }
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": {
+                    "id": user.id,
+                    "full_name": user.full_name,
+                    "email": user.email,
+                    "role": user.role,
+                },
+            },
+            status=status.HTTP_200_OK,
         )
 
 #profile view
@@ -145,19 +115,16 @@ class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-
         user = request.user
-
         return Response(
             {
                 "id": user.id,
-                "username": user.username,
-                "name": user.first_name,
+                "full_name": user.full_name,
                 "email": user.email,
                 "phone_number": user.phone_number,
                 "role": user.role,
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
     
 
@@ -186,3 +153,21 @@ class LogoutView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
+#me view
+class MeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        return Response(
+            {
+                "id": user.id,
+                "full_name": user.full_name,
+                "email": user.email,
+                "phone_number": user.phone_number,
+                "role": user.role,
+                "status": user.status,
+            },
+            status=status.HTTP_200_OK
+        )

@@ -8,19 +8,20 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = [
-            "first_name",
-            "username",
+            "full_name",
             "email",
             "phone_number",
             "password"
         ]
 
     def create(self, validated_data):
+        full_name = validated_data.get("full_name", "")
         user = User.objects.create_user(
-            username=validated_data["username"],
+            username=validated_data["email"],
             email=validated_data["email"],
             password=validated_data["password"],
-            first_name=validated_data["first_name"],
+            full_name=full_name,
+            first_name=full_name,
             phone_number=validated_data["phone_number"]
         )
 
@@ -29,16 +30,16 @@ class RegisterSerializer(serializers.ModelSerializer):
 #login serializer
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField(required=False)
-    username = serializers.CharField(required=False)
+    full_name = serializers.CharField(required=False)
     password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
         email = attrs.get("email")
-        username = attrs.get("username")
+        full_name = attrs.get("full_name")
 
-        if not email and not username:
+        if not email and not full_name:
             raise serializers.ValidationError(
-                "Email or username is required."
+                "Email or full name is required."
             )
 
         return attrs
@@ -59,7 +60,7 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     def get_token(cls, user):
         token = super().get_token(user)
 
-        token['username'] = user.username
+        token['full_name'] = user.full_name
         token['email'] = user.email
 
         return token

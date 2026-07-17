@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
-from FIXIT.views import *
+from django.conf import settings
+from django.conf.urls.static import static
+from FIXIT.views import MyTokenObtainPairView
 from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
@@ -8,7 +10,7 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     path('admin/', admin.site.urls),
     # path('',include('accounts.urls')),
-    path('accounts/', include('accounts.urls')),
+    path('ac/', include('accounts.urls')),
     #login token generation
     path('token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     #token refresh
@@ -16,7 +18,8 @@ urlpatterns = [
         'token/refresh/',
         TokenRefreshView.as_view(),
         name='token_refresh'),
-    path('service/', include('Service.urls')),
-
-
+    path('ser/', include('Service.urls')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
