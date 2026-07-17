@@ -1,4 +1,6 @@
-from django.http import HttpResponse
+from rest_framework_simplejwt.views import TokenObtainPairView
+from accounts.serializers import MyTokenObtainPairSerializer
 
-def index(request):
-    return HttpResponse("FIXIT is working!")
+
+class MyTokenObtainPairView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer

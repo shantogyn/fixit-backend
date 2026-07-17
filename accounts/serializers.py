@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import User
-
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 #register serializer
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
@@ -48,3 +48,18 @@ class LoginSerializer(serializers.Serializer):
 #logout serializer
 class LogoutSerializer(serializers.Serializer):
     refresh = serializers.CharField()
+
+
+
+
+
+class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
+
+    @classmethod
+    def get_token(cls, user):
+        token = super().get_token(user)
+
+        token['username'] = user.username
+        token['email'] = user.email
+
+        return token
